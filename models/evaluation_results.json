@@ -1,0 +1,54 @@
+{
+  "num_samples": 5000,
+  "total_legitimate": 3256,
+  "total_attacks": 1744,
+  "metrics": {
+    "attack_blocking_rate_pct": 99.37,
+    "unauthorized_access_rate_pct": 0.63,
+    "legitimate_access_rate_pct": 99.79,
+    "false_denial_rate_pct": 0.21,
+    "emergency_denial_rate_pct": 0.13,
+    "average_decision_time_ms": 0.01841,
+    "p95_decision_time_ms": 0.0222,
+    "cumulative_reward": 71363.0
+  },
+  "scenario_counts": {
+    "NORMAL_ACCESS": 2484,
+    "EMERGENCY_ACCESS": 772,
+    "STOLEN_CREDENTIAL": 604,
+    "INSIDER_MISUSE": 594,
+    "MASS_ACCESS": 546
+  },
+  "action_breakdown": {
+    "NORMAL_ACCESS": {
+      "ALLOW": 2387,
+      "DENY": 6,
+      "CHALLENGE": 35,
+      "RESTRICT": 56
+    },
+    "EMERGENCY_ACCESS": {
+      "ALLOW": 770,
+      "DENY": 1,
+      "CHALLENGE": 1,
+      "RESTRICT": 0
+    },
+    "STOLEN_CREDENTIAL": {
+      "ALLOW": 5,
+      "DENY": 393,
+      "CHALLENGE": 202,
+      "RESTRICT": 4
+    },
+    "INSIDER_MISUSE": {
+      "ALLOW": 0,
+      "DENY": 377,
+      "CHALLENGE": 20,
+      "RESTRICT": 197
+    },
+    "MASS_ACCESS": {
+      "ALLOW": 2,
+      "DENY": 493,
+      "CHALLENGE": 51,
+      "RESTRICT": 0
+    }
+  }
+}

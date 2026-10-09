@@ -1,0 +1,28 @@
+/* AegisRL Components v3 - supplemental only */
+
+/* Spin animation */
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.spin{animation:spin 0.8s linear infinite}
+
+/* Chart legend font fix */
+canvas { display: block; }
+
+/* Shimmer loading */
+.shimmer{
+  background:linear-gradient(90deg,var(--surface-3) 25%,var(--surface-4) 50%,var(--surface-3) 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:var(--r1);
+}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+/* Empty state */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:48px 24px;text-align:center;
+}
+.empty-state-icon{
+  width:48px;height:48px;background:var(--surface-3);border:1px solid var(--bdr-1);
+  border-radius:var(--r2);display:flex;align-items:center;justify-content:center;
+  color:var(--text-4);margin-bottom:14px;
+}
+.empty-state-title{font-size:0.92rem;font-weight:700;color:var(--text-2);margin-bottom:5px}
+.empty-state-sub{font-size:0.79rem;color:var(--text-3);max-width:260px}

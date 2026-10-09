@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables & secrets (CRITICAL: Do not commit sensitive keys)
+.env
+!.env.example
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Temporary and log files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Temporary audit dumps & generator scripts in static
+audit_results.json
+static/build_*.py
+static/patch_*.py
+static/update_*.py
+static/write_*.py
+
+# IDE, OS, and tool artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+.gemini/

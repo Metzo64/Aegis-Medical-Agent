@@ -1,0 +1,9 @@
+{
+  "total_episodes_trained": 35000,
+  "learning_rate": 0.1,
+  "gamma": 0.9,
+  "epsilon": 0.01,
+  "epsilon_min": 0.01,
+  "epsilon_decay": 0.9998,
+  "non_zero_q_entries": 1276
+}

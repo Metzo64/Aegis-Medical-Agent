@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AegisRL | Hospital Access Control</title>
+  <meta name="description" content="Adaptive Q-Learning zero-trust access control for hospital EHR." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233B82F6'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css?v=6" />
+  <link rel="stylesheet" href="/static/css/components.css?v=6" />
+  <script>
+    (function() {
+      var saved = localStorage.getItem("aegisrl-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", saved);
+    })();
+  </script>
+</head>
+<body>
+<div class="ambient-mesh" aria-hidden="true">
+  <div class="mesh-blob blob-1"></div>
+  <div class="mesh-blob blob-2"></div>
+  <div class="mesh-blob blob-3"></div>
+</div>
+<div id="toast-hub"></div>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">AegisRL</div>
+        <div class="brand-sub">Zero-Trust EHR</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Clinical</div>
+      <a class="nav-link active" data-page="dashboard" id="navDashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-link" data-page="patients" id="navPatients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Patients
+        <span class="nav-count">1k+</span>
+      </a>
+      <a class="nav-link" data-page="access" id="navAccess">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Request Access
+      </a>
+      <div class="nav-group-label">Security</div>
+      <a class="nav-link" data-page="admin" id="navAdmin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Admin Console
+      </a>
+      <a class="nav-link" data-page="simulator" id="navSimulator">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+        Simulator
+      </a>
+      <a class="nav-link" data-page="history" id="navHistory">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Audit Logs
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="db-status">
+        <span class="pulse-dot"></span>
+        <span id="headerStatusText">Supabase Live</span>
+        <span class="db-row-count mono">14k</span>
+      </div>
+      <div class="user-chip" id="sidebarUserProfile">
+        <div class="user-chip-avatar current-user-avatar">DR</div>
+        <div class="user-chip-info">
+          <div class="user-chip-name current-user-name">Dr. Vishnu Pandey</div>
+          <div class="user-chip-role current-user-dept">Cardiology</div>
+        </div>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="mobileMenuToggle" class="icon-btn" style="display:none">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div id="topbarTitle" class="topbar-title">Staff Dashboard</div>
+          <div id="topbarBreadcrumb" class="topbar-crumb">AegisRL / Dashboard</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Light / Dark Mode">
+          <span id="themeToggleIcon">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </span>
+        </button>
+        <div class="latency-pill" id="headerLatencyPill">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          &lt;0.02 ms
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="openLoginModal()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Switch User
+        </button>
+      </div>
+    </header>
+    <main class="content">
+
+      <!-- DASHBOARD -->
+      <section id="view-dashboard" class="view active">
+        <div class="page-header">
+          <div>
+            <p class="page-eyebrow" id="staffDeptPill">Doctor &middot; Cardiology</p>
+            <h2 class="page-title" id="staffWelcomeText">Welcome, Dr. Vishnu Pandey</h2>
+            <p class="page-desc">EHR access control &mdash; Q-Learning agent enforcing zero-trust policy.</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-outline" onclick="navigateTo('patients')">Patient Records</button>
+            <button class="btn btn-primary" onclick="navigateTo('access')">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              New Request
+            </button>
+          </div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi-card"><div class="kpi-label">Total Requests</div><div class="kpi-value" id="staffStatTotal">10,000</div><div class="kpi-sub">PostgreSQL log</div></div>
+          <div class="kpi-card kpi-green"><div class="kpi-label">Approved</div><div class="kpi-value" id="staffStatAllowed">7,249</div><div class="kpi-sub"><span class="good">99.79%</span> legit rate</div></div>
+          <div class="kpi-card kpi-red"><div class="kpi-label">Blocked</div><div class="kpi-value" id="staffStatDenied">1,733</div><div class="kpi-sub"><span class="good">99.37%</span> block rate</div></div>
+          <div class="kpi-card kpi-amber"><div class="kpi-label">Latency</div><div class="kpi-value mono" id="staffStatLatency">0.016 ms</div><div class="kpi-sub">Sub-millisecond</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Recent Decisions</div><p class="card-sub">Latest evaluations from the RL agent</p></div>
+            <button class="btn btn-ghost btn-sm" onclick="navigateTo('history')">Full Audit &rarr;</button>
+          </div>
+          <div class="table-wrap"><table class="tbl">
+            <thead><tr><th>Request</th><th>Patient</th><th>Scenario</th><th>Emergency</th><th>Decision</th><th>Latency</th></tr></thead>
+            <tbody id="staffRecentTableBody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- ADMIN -->
+      <section id="view-admin" class="view">
+        <div class="page-header">
+          <div>
+            <p class="page-eyebrow violet-eye">Security Operations</p>
+            <h2 class="page-title">Admin Console</h2>
+            <p class="page-desc">Model governance, threat neutralization &amp; PostgreSQL audit analytics.</p>
+          </div>
+          <button class="btn btn-primary" onclick="navigateTo('simulator')">Launch Simulator</button>
+        </div>
+        <div class="kpi-row kpi-row-6">
+          <div class="kpi-card kpi-green"><div class="kpi-label">Block Rate</div><div class="kpi-value" id="adminStatBlockingRate">99.37%</div><div class="kpi-sub"><span class="good">Passed</span></div></div>
+          <div class="kpi-card kpi-blue"><div class="kpi-label">Legit Rate</div><div class="kpi-value" id="adminStatLegitRate">99.79%</div><div class="kpi-sub"><span class="good">Passed</span></div></div>
+          <div class="kpi-card kpi-amber"><div class="kpi-label">False Denial</div><div class="kpi-value" id="adminStatFalseDenial">0.21%</div><div class="kpi-sub"><span class="good">Passed</span></div></div>
+          <div class="kpi-card kpi-red"><div class="kpi-label">Emerg Denial</div><div class="kpi-value" id="adminStatEmergDenial">0.13%</div><div class="kpi-sub">Life-Safety</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg Latency</div><div class="kpi-value mono" id="adminStatLatency">0.016 ms</div><div class="kpi-sub">Sub-ms</div></div>
+          <div class="kpi-card kpi-green"><div class="kpi-label">Q-Reward</div><div class="kpi-value mono" id="adminStatReward">+71,363</div><div class="kpi-sub"><span class="good">Converged</span></div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card"><div class="card-header"><div class="card-title">Action Distribution</div></div><div style="height:250px;position:relative"><canvas id="chartDecisionDist"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Scenario Enforcement</div></div><div style="height:250px;position:relative"><canvas id="chartScenarioPerf"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Security Telemetry</div><p class="card-sub">Live policy execution stream</p></div>
+            <div class="filter-row">
+              <button class="chip active admin-filter-pill" data-filter="ALL" onclick="loadAdminActivityStream('ALL')">All</button>
+              <button class="chip admin-filter-pill" data-filter="ALLOW" onclick="loadAdminActivityStream('ALLOW')">Allow</button>
+              <button class="chip admin-filter-pill" data-filter="DENY" onclick="loadAdminActivityStream('DENY')">Deny</button>
+              <button class="chip admin-filter-pill" data-filter="CHALLENGE" onclick="loadAdminActivityStream('CHALLENGE')">Challenge</button>
+              <button class="chip admin-filter-pill" data-filter="RESTRICT" onclick="loadAdminActivityStream('RESTRICT')">Restrict</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table class="tbl">
+            <thead><tr><th>Req</th><th>User</th><th>Patient</th><th>Scenario</th><th>Decision</th><th>Reward</th><th>Latency</th></tr></thead>
+            <tbody id="adminActivityTableBody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- PATIENTS -->
+      <section id="view-patients" class="view">
+        <div class="page-header">
+          <div>
+            <p class="page-eyebrow">Patient Registry</p>
+            <h2 class="page-title">Patient Records</h2>
+            <p class="page-desc">Supabase PostgreSQL &mdash; <span class="mono">patients</span> table</p>
+          </div>
+          <input type="text" id="patientSearchInput" class="search-input" placeholder="Search name or code&hellip;" oninput="handlePatientSearchInput(event)" />
+        </div>
+        <div class="dept-filters">
+          <button class="chip active dept-filter-btn" data-dept="" onclick="setPatientDeptFilter(null)">All Depts</button>
+          <button class="chip dept-filter-btn" data-dept="1" onclick="setPatientDeptFilter(1)">Cardiology</button>
+          <button class="chip dept-filter-btn" data-dept="2" onclick="setPatientDeptFilter(2)">Neurology</button>
+          <button class="chip dept-filter-btn" data-dept="3" onclick="setPatientDeptFilter(3)">Oncology</button>
+          <button class="chip dept-filter-btn" data-dept="4" onclick="setPatientDeptFilter(4)">Emergency</button>
+          <button class="chip dept-filter-btn" data-dept="5" onclick="setPatientDeptFilter(5)">General</button>
+        </div>
+        <div class="patient-grid" id="patientsGridContainer"></div>
+      </section>
+
+      <!-- ACCESS REQUEST -->
+      <section id="view-access" class="view">
+        <div class="page-header">
+          <div>
+            <p class="page-eyebrow">Zero-Trust Authorization Control</p>
+            <h2 class="page-title">Adaptive Access Engine</h2>
+            <p class="page-desc">Tabular Q-Learning evaluates multidimensional clinical context to enforce real-time least privilege.</p>
+          </div>
+          <div class="filter-row">
+            <span class="preset-label">Clinical Scenarios:</span>
+            <button class="chip" onclick="applyPreset('emergency')">Code-Blue Emergency</button>
+            <button class="chip" onclick="applyPreset('routine')">Routine Ward Care</button>
+            <button class="chip" onclick="applyPreset('snooping')">Off-Hours Audit</button>
+            <button class="chip" onclick="applyPreset('scraping')">Exfiltration Attack</button>
+          </div>
+        </div>
+
+        <div class="access-layout">
+          <!-- LEFT COLUMN: REQUEST CONTEXT BUILDER -->
+          <div class="access-col-form">
+            <!-- TARGET PATIENT IDENTITY CARD -->
+            <div class="target-patient-box" id="accessTargetPatientLabel">
+              <div class="target-avatar">LA</div>
+              <div class="target-info">
+                <div class="target-name-row">
+                  <span class="target-name">Lavanya Agarwal</span>
+                  <span class="pat-code mono">PAT-0001</span>
+                  <span class="target-dept-badge">Cardiology</span>
+                </div>
+                <div class="target-meta">
+                  Target Record: <span class="mono" style="color:var(--cyan-400);font-weight:600;">REC-7057</span> &bull; Age 32 &bull; General Diagnostics
+                </div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="navigateTo('patients')" style="margin-left:auto;">
+                Browse Patients &rarr;
+              </button>
+            </div>
+
+            <!-- REQUEST PARAMETERS FORM -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Access Request Parameters</div>
+                  <p class="card-sub">Environmental telemetry fed into discrete state vector</p>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="field">
+                  <label class="field-label">Requester Role</label>
+                  <select id="accessRoleSelect" class="field-input">
+                    <option value="DOCTOR">Doctor</option>
+                    <option value="NURSE">Nurse</option>
+                    <option value="STAFF">Admin / Staff</option>
+                    <option value="RESEARCHER">Researcher</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">Record Sensitivity</label>
+                  <select id="accessSensitivitySelect" class="field-input">
+                    <option value="LOW">Low &mdash; Vitals</option>
+                    <option value="MEDIUM" selected>Medium &mdash; Labs</option>
+                    <option value="HIGH">High &mdash; Psychiatric</option>
+                    <option value="CRITICAL_VIP">Critical / VIP</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">Request Time Shift</label>
+                  <select id="accessTimeSelect" class="field-input">
+                    <option value="NORMAL_HOURS">Normal Working Hours (08&ndash;18)</option>
+                    <option value="OFF_HOURS">Off-Hours / Night Shift</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">Network Location</label>
+                  <select id="accessLocSelect" class="field-input">
+                    <option value="INTERNAL_HOSPITAL">Internal Hospital LAN</option>
+                    <option value="VPN_OFFSITE">Secure Clinical VPN</option>
+                    <option value="EXTERNAL_UNKNOWN">External / Unknown IP</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">Query Frequency (Velocity)</label>
+                  <select id="accessFreqSelect" class="field-input">
+                    <option value="NORMAL">Normal (1&ndash;5 queries/min)</option>
+                    <option value="ELEVATED">Elevated (6&ndash;20 queries/min)</option>
+                    <option value="BURST_HIGH">Burst Threat (&gt;20 queries/min)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">Clinical Unit Clearance</label>
+                  <label class="toggle-row">
+                    <input type="checkbox" id="accessDeptMatch" checked />
+                    <span>Requester matches patient department</span>
+                  </label>
+                </div>
+                <div class="field" style="grid-column: 1 / -1;">
+                  <label class="field-label red-label">Emergency Life-Safety Override</label>
+                  <label class="toggle-row">
+                    <input type="checkbox" id="accessEmergencyToggle" />
+                    <span class="red-label">Active Code-Blue Emergency Protocol</span>
+                  </label>
+                </div>
+              </div>
+              <div class="card-footer">
+                <span class="card-footer-note">&sim;0.016 ms Tabular Q-Inference</span>
+                <button class="btn btn-primary" id="btnEvaluateRequest" onclick="triggerRLEvaluation()">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  Evaluate Access Request
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: PIPELINE & TELEMETRY VERDICT -->
+          <div class="access-col-telemetry">
+            <!-- 5-STEP PIPELINE -->
+            <div class="pipeline-box">
+              <p class="pipeline-label">RL Inference Pipeline (5-Stage Evaluation)</p>
+              <div class="pipeline-track">
+                <div class="pipeline-rail"></div>
+                <div class="pipeline-progress" id="pipelineLineProgress"></div>
+                <div class="pipeline-step" id="stepNode1"><div class="step-dot">1</div><span>Received</span></div>
+                <div class="pipeline-step" id="stepNode2"><div class="step-dot">2</div><span>Vectorized</span></div>
+                <div class="pipeline-step" id="stepNode3"><div class="step-dot">3</div><span>Profiled</span></div>
+                <div class="pipeline-step" id="stepNode4"><div class="step-dot">4</div><span>Q-Lookup</span></div>
+                <div class="pipeline-step" id="stepNode5"><div class="step-dot">5</div><span>Enforced</span></div>
+              </div>
+            </div>
+
+            <!-- DECISION VERDICT CONTAINER -->
+            <div id="rlResultContainer"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SIMULATOR -->
+      <section id="view-simulator" class="view">
+        <div class="page-header">
+          <div>
+            <p class="page-eyebrow red-eye">Cyber Operations</p>
+            <h2 class="page-title">Threat Simulator</h2>
+            <p class="page-desc">Test zero-trust Q-policy resilience against clinical and malicious threat models.</p>
+          </div>
+        </div>
+        <div class="scenario-grid">
+          <div class="scenario-tile" onclick="runSimulation('NORMAL_ACCESS')">
+            <div class="scenario-icon green-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            <div class="scenario-name">Normal Access</div>
+            <p class="scenario-desc">Doctor in own department, regular hours, normal query rate.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:auto">Run &rarr;</button>
+          </div>
+          <div class="scenario-tile" onclick="runSimulation('EMERGENCY_ACCESS')">
+            <div class="scenario-icon blue-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+            <div class="scenario-name">Emergency Access</div>
+            <p class="scenario-desc">Code-blue trauma requiring instant life-safety override.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:auto">Run &rarr;</button>
+          </div>
+          <div class="scenario-tile" onclick="runSimulation('STOLEN_CREDENTIAL')">
+            <div class="scenario-icon red-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+            <div class="scenario-name">Stolen Credentials</div>
+            <p class="scenario-desc">Valid creds from external untrusted IP for VIP record access.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:auto">Run &rarr;</button>
+          </div>
+          <div class="scenario-tile" onclick="runSimulation('INSIDER_MISUSE')">
+            <div class="scenario-icon amber-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+            <div class="scenario-name">Insider Misuse</div>
+            <p class="scenario-desc">Staff browsing records outside assigned department.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:auto">Run &rarr;</button>
+          </div>
+          <div class="scenario-tile" onclick="runSimulation('MASS_ACCESS')">
+            <div class="scenario-icon red-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+            <div class="scenario-name">Mass Exfiltration</div>
+            <p class="scenario-desc">Automated bot burst-querying multiple patient records.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:auto">Run &rarr;</button>
+          </div>
+        </div>
+        <div class="canvas-card">
+          <div class="canvas-top-left"><span class="pulse-dot"></span><span id="canvasSimStatus">Live Network</span></div>
+          <div class="canvas-top-right">
+            <div class="legend-item"><span class="legend-dot" style="background:#3B82F6"></span>EHR Vault</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#8B5CF6"></span>Gateway</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#10B981"></span>Wards</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#EF4444"></span>Threat</div>
+          </div>
+          <canvas id="cyberNetworkCanvas"></canvas>
+        </div>
+        <div id="simulationResultPanel"></div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Session Log</div></div>
+          <div class="table-wrap"><table class="tbl">
+            <thead><tr><th>Time</th><th>Scenario</th><th>Decision</th><th>Reward</th><th>Latency</th></tr></thead>
+            <tbody id="simHistoryTableBody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- HISTORY -->
+      <section id="view-history" class="view">
+        <div class="page-header">
+          <div>
+            <p class="page-eyebrow">Compliance</p>
+            <h2 class="page-title">Audit Trail</h2>
+            <p class="page-desc">Full history from <span class="mono">access_requests</span> &amp; <span class="mono">rl_decisions</span></p>
+          </div>
+          <span class="chip" id="historyResultCount">50 records</span>
+        </div>
+        <div class="history-controls">
+          <input type="text" id="historySearchInput" class="search-input" placeholder="Filter by ID, user, patient, scenario&hellip;" oninput="handleHistorySearch(event)" />
+          <div class="filter-row">
+            <button class="chip active history-filter-pill" data-filter="ALL" onclick="fetchAndRenderHistory('ALL')">All</button>
+            <button class="chip history-filter-pill" data-filter="ALLOW" onclick="fetchAndRenderHistory('ALLOW')">Allow</button>
+            <button class="chip history-filter-pill" data-filter="DENY" onclick="fetchAndRenderHistory('DENY')">Deny</button>
+            <button class="chip history-filter-pill" data-filter="CHALLENGE" onclick="fetchAndRenderHistory('CHALLENGE')">Challenge</button>
+            <button class="chip history-filter-pill" data-filter="RESTRICT" onclick="fetchAndRenderHistory('RESTRICT')">Restrict</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrap"><table class="tbl">
+            <thead><tr><th>Req ID</th><th>Requester</th><th>Patient</th><th>Scenario</th><th>Decision</th><th>Reward</th><th>Detail</th></tr></thead>
+            <tbody id="historyTableBody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- PATIENT DRAWER -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closePatientDrawer()"></div>
+<aside class="drawer" id="patientDrawer">
+  <div class="drawer-head">
+    <div>
+      <div style="font-size:1.05rem;font-weight:700;color:var(--text-1)" id="drawerPatientName">Patient</div>
+      <div style="font-size:0.78rem;color:var(--text-3);margin-top:3px">
+        <span class="mono" id="drawerPatientCode" style="color:var(--blue-400)">PAT-0000</span> &middot; <span id="drawerPatientMeta"></span>
+      </div>
+    </div>
+    <button class="icon-btn" onclick="closePatientDrawer()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <p class="section-label" style="margin-bottom:12px">Records in Supabase</p>
+    <div id="drawerRecordsList"></div>
+  </div>
+</aside>
+
+<!-- RECORD MODAL -->
+<div id="recordInspectionModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:2100;align-items:center;justify-content:center;padding:20px;">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="card-title">EHR Record</div>
+      <button class="icon-btn" onclick="closeRecordModal()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="recordModalContent" style="font-size:0.84rem;color:var(--text-2);line-height:1.7;max-height:400px;overflow-y:auto;"></div>
+    <div style="margin-top:20px;text-align:right"><button class="btn btn-primary btn-sm" onclick="closeRecordModal()">Close</button></div>
+  </div>
+</div>
+
+<!-- HISTORY DETAIL MODAL -->
+<div id="historyDetailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:2100;align-items:center;justify-content:center;padding:20px;">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="card-title">Audit Detail</div>
+      <button class="icon-btn" onclick="closeHistoryDetailModal()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="historyModalContent" style="max-height:400px;overflow-y:auto;"></div>
+    <div style="margin-top:20px;text-align:right"><button class="btn btn-primary btn-sm" onclick="closeHistoryDetailModal()">Done</button></div>
+  </div>
+</div>
+
+<!-- PERSONA SWITCHER -->
+<div class="overlay" id="loginOverlay">
+  <div class="overlay-card">
+    <div class="overlay-head">
+      <div class="overlay-logo">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-1)">Select Persona</h2>
+      <p style="font-size:0.80rem;color:var(--text-3);margin-top:4px">Choose a user from Supabase <span class="mono">users</span></p>
+    </div>
+    <div class="persona-list" id="personaPillsList"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="closeLoginModal()">Continue</button>
+  </div>
+</div>
+
+<script src="/static/js/vendor/chart.umd.min.js"></script>
+<script src="/static/js/app.js?v=6"></script>
+<script src="/static/js/dashboard.js?v=6"></script>
+<script src="/static/js/patients.js?v=6"></script>
+<script src="/static/js/access.js?v=6"></script>
+<script src="/static/js/simulator.js?v=6"></script>
+<script src="/static/js/history.js?v=6"></script>
+</body>
+</html>

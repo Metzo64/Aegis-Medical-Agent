@@ -1,0 +1,11 @@
+Model_Name,Evaluation_Samples,Attack_Blocking_Rate_Pct,Legitimate_Access_Rate_Pct,False_Denial_Rate_Pct,Emergency_Denial_Rate_Pct,Mean_Reward,Cumulative_Reward,Inference_Latency_Ms
+Random_Policy,5000,61.44,73.61,26.39,27.95,-2.27,-11361.0,0.0050
+Static_RBAC_Matrix,5000,94.54,75.02,24.98,53.56,7.30,36480.0,0.0082
+Trained_AegisRL_QLearning,5000,99.36,99.91,0.09,0.14,14.19,70940.0,0.0184
+
+Scenario_Name,Sample_Count,ALLOW_Count,DENY_Count,CHALLENGE_Count,RESTRICT_Count,Primary_Enforcement_Action
+NORMAL_ACCESS,2484,2387,6,35,56,ALLOW
+EMERGENCY_ACCESS,772,770,1,1,0,ALLOW
+STOLEN_CREDENTIAL,604,5,393,202,4,DENY
+INSIDER_MISUSE,594,0,377,20,197,DENY
+MASS_ACCESS,546,2,493,51,0,DENY
